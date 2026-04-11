@@ -1,87 +1,98 @@
-# LLM Knesset
+# llm-knesset
 
-![llmcouncil](header.jpg)
+Asks your question to a council of LLMs. They answer independently, critique each other anonymously, then a chairman synthesizes a final answer.
 
-The idea of this repo is that instead of asking a question to your favorite LLM provider (e.g. OpenAI GPT 5.1, Google Gemini 3.0 Pro, Anthropic Claude Sonnet 4.5, xAI Grok 4, eg.c), you can group them into your "LLM Knesset". This repo is a simple, local web app that essentially looks like ChatGPT except it uses OpenRouter to send your query to multiple LLMs, it then asks them to review and rank each other's work, and finally a Chairman LLM produces the final response.
+Built on top of [Andrej Karpathy's llm-council](https://github.com/karpathy/llm-council) — the three-stage deliberation architecture is his work. This fork wraps it in a multi-user web app with Firebase auth, per-user model preferences, an admin panel, and SSE streaming.
 
-In a bit more detail, here is what happens when you submit a query:
+---
 
-1. **Stage 1: First opinions**. The user query is given to all LLMs individually, and the responses are collected. The individual responses are shown in a "tab view", so that the user can inspect them all one by one.
-2. **Stage 2: Review**. Each individual LLM is given the responses of the other LLMs. Under the hood, the LLM identities are anonymized so that the LLM can't play favorites when judging their outputs. The LLM is asked to rank them in accuracy and insight.
-3. **Stage 3: Final response**. The designated Chairman of the LLM Knesset takes all of the model's responses and compiles them into a single final answer that is presented to the user.
+## How it works
 
-## Vibe Code Alert
+**Stage 1 — Responses**
+All council members receive the query in parallel. Each answers without seeing the others.
 
-This project was 99% vibe coded as a fun Saturday hack because I wanted to explore and evaluate a number of LLMs side by side in the process of [reading books together with LLMs](https://x.com/karpathy/status/1990577951671509438). It's nice and useful to see multiple responses side by side, and also the cross-opinions of all LLMs on each other's outputs. I'm not going to support it in any way, it's provided here as is for other people's inspiration and I don't intend to improve it. Code is ephemeral now and libraries are over, ask your LLM to change it in whatever way you like.
+**Stage 2 — Peer review**
+Each model evaluates the other responses, anonymized as "Response A, B, C…" so they can't favor a known brand. They rank by accuracy and insight. The UI shows both the raw evaluation text and the extracted ranking so you can verify the system's interpretation.
+
+**Stage 3 — Synthesis**
+The chairman model reads all responses and rankings, then writes a final answer. Not a vote — a synthesis.
+
+Every stage is inspectable.
+
+---
+
+## Stack
+
+| Layer | Tech |
+|---|---|
+| Backend | FastAPI, Python 3.10+, async httpx |
+| Frontend | React + Vite |
+| Auth | Firebase (Google OAuth) |
+| Storage | PostgreSQL |
+| Models | OpenRouter (any model it carries) |
+
+---
 
 ## Setup
 
-### 1. Install Dependencies
+**Prerequisites**: Python 3.10+, Node.js, PostgreSQL, OpenRouter API key with funded credits, Firebase project with Google auth enabled.
 
-The project uses [uv](https://docs.astral.sh/uv/) for project management.
-
-**Backend:**
 ```bash
+git clone https://github.com/aohana182/llm-knesset
+cd llm-knesset
+
+# backend
+cp .env.example .env   # fill in all vars (see below)
 uv sync
-```
+python -m uvicorn backend.main:app --host 0.0.0.0 --port 8001
 
-**Frontend:**
-```bash
+# frontend (separate terminal)
 cd frontend
 npm install
-cd ..
+npm run dev            # http://localhost:5173
 ```
 
-### 2. Configure API Key
-
-Create a `.env` file in the project root:
+Production (backend serves built frontend):
 
 ```bash
-OPENROUTER_API_KEY=sk-or-v1-...
+cd frontend && npm run build && cd ..
+bash start.sh          # port 8080
 ```
 
-Get your API key at [openrouter.ai](https://openrouter.ai/). Make sure to purchase the credits you need, or sign up for automatic top up.
+---
 
-### 3. Configure Models (Optional)
+## Environment variables
 
-Edit `backend/config.py` to customize the council:
+```
+OPENROUTER_API_KEY=sk-or-...
+DATABASE_URL=postgresql://user:pass@host:5432/dbname
+SESSION_SECRET=<long random string>
 
-```python
-COUNCIL_MODELS = [
-    "openai/gpt-5.1",
-    "google/gemini-3-pro-preview",
-    "anthropic/claude-sonnet-4.5",
-    "x-ai/grok-4",
-]
-
-CHAIRMAN_MODEL = "google/gemini-3-pro-preview"
+VITE_FIREBASE_PROJECT_ID=your-project-id
+VITE_FIREBASE_API_KEY=AIza...
+VITE_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
+FIREBASE_CLIENT_EMAIL=firebase-adminsdk-...@your-project.iam.gserviceaccount.com
+FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n..."
 ```
 
-## Running the Application
+---
 
-**Option 1: Use the start script**
+## Model configuration
+
+Edit `backend/config.py` to set which models form the council and which acts as chairman. Any model available on OpenRouter works.
+
+Override per-user in the UI, or system-wide through the admin panel. First user to sign in becomes admin.
+
+---
+
+## Tests
+
 ```bash
-./start.sh
+uv run pytest
 ```
 
-**Option 2: Run manually**
+---
 
-Terminal 1 (Backend):
-```bash
-uv run python -m backend.main
-```
+## Credits
 
-Terminal 2 (Frontend):
-```bash
-cd frontend
-npm run dev
-```
-
-Then open http://localhost:5173 in your browser.
-
-## Tech Stack
-
-- **Backend:** FastAPI (Python 3.10+), async httpx, OpenRouter API
-- **Frontend:** React + Vite, react-markdown for rendering
-- **Storage:** JSON files in `data/conversations/`
-- **Package Management:** uv for Python, npm for JavaScript
+Three-stage deliberation concept and core architecture: [Andrej Karpathy](https://github.com/karpathy/llm-council).

@@ -35,7 +35,7 @@ def get_conversation(conversation_id: str, user_id: str = "") -> Optional[Dict[s
         if row is None:
             return None
         row = dict(row)
-        if user_id and row["user_id"] and row["user_id"] != user_id:
+        if row["user_id"] != user_id:
             return None
 
         cur.execute(
