@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Primary meta -->
+    <title>LLM Knesset — Multi-Model AI Deliberation</title>
+    <meta name="description" content="LLM Knesset sends your question to multiple frontier AI models simultaneously, has them anonymously critique and rank each other's answers, then synthesizes the best response — giving you collective AI wisdom in one place." />
+    <meta name="keywords" content="LLM Knesset, multi-model AI, AI deliberation, compare AI models, OpenAI, Anthropic, Google, xAI, Meta, Mistral, OpenRouter, AI council, AI peer review, AI synthesis, reduce AI hallucinations" />
+    <meta name="robots" content="index, follow" />
+    <meta name="author" content="LLM Knesset" />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="LLM Knesset — Multi-Model AI Deliberation" />
+    <meta property="og:description" content="Ask multiple frontier AI models the same question, have them rank each other's answers anonymously, and get a synthesized final response. Better answers through deliberation." />
+    <meta property="og:site_name" content="LLM Knesset" />
+    <meta property="og:locale" content="en_US" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="LLM Knesset — Multi-Model AI Deliberation" />
+    <meta name="twitter:description" content="Stop trusting one AI. Ask models from OpenAI, Anthropic, Google, and xAI the same question simultaneously. They rank each other's answers. A chairman synthesizes the best response." />
+
+    <!-- JSON-LD: WebApplication -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "LLM Knesset",
+      "url": "https://llmknesset.replit.app",
+      "description": "LLM Knesset is a multi-model AI deliberation platform. It sends user questions to multiple large language models simultaneously, conducts anonymous peer ranking where each model evaluates the others without knowing who wrote what, and synthesizes a final answer via a designated chairman model.",
+      "applicationCategory": "AIApplication",
+      "operatingSystem": "Web",
+      "browserRequirements": "Requires JavaScript and a Google account",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD",
+        "description": "Free to use — requires your own OpenRouter API key"
+      },
+      "featureList": [
+        "Simultaneous multi-model LLM querying via OpenRouter",
+        "Anonymous three-stage deliberation process",
+        "Peer ranking without model identity bias",
+        "Chairman model synthesis of all responses",
+        "Google OAuth authentication",
+        "Per-user private conversation history",
+        "Configurable council and chairman models",
+        "Full response transparency — read every model's reasoning"
+      ],
+      "creator": {
+        "@type": "Organization",
+        "name": "LLM Knesset"
+      }
+    }
+    </script>
+
+    <!-- JSON-LD: FAQPage -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "What is LLM Knesset?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "LLM Knesset is a multi-model AI deliberation platform. Instead of querying a single AI model, it sends your question to multiple frontier models simultaneously — from providers such as OpenAI, Anthropic, Google, and xAI — has them anonymously critique and rank each other's responses, and then uses a designated chairman model to synthesize the best final answer."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How does the three-stage deliberation process work?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Stage 1 (Independent Responses): Each model answers the question in isolation with no knowledge of other models' answers. Stage 2 (Anonymous Peer Review): All models receive the other responses with model identities hidden, and rank them from best to worst. Stage 3 (Chairman Synthesis): A designated chairman model reads all responses and rankings, then writes a comprehensive final answer drawing on the best insights from all models."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Which AI models does LLM Knesset use?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "LLM Knesset integrates with OpenRouter, giving access to over 300 frontier models from providers including OpenAI, Anthropic, Google, xAI, Meta, Mistral, and many others. Users can configure exactly which models form their council and which model acts as chairman."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How does LLM Knesset reduce AI hallucinations and bias?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "LLM Knesset uses two techniques. First, anonymous peer review in Stage 2 hides model identities so models cannot favor responses from well-known providers. Second, multi-model consensus means that if multiple independent models agree on a fact, the answer is more likely to be accurate. When models disagree, the synthesis step flags the uncertainty."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is LLM Knesset free to use?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. LLM Knesset is free to use — you just need a Google account to sign in and your own OpenRouter API key to pay for model inference. Costs depend on which models you choose; many models on OpenRouter are very affordable or free."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Are my conversations private?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. Each conversation is tied to your Google account and is never visible to other users. Conversations are stored per-user and only accessible after authentication."
+          }
+        }
+      ]
+    }
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
