@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { api } from '../api';
 import './ModelPicker.css';
 
@@ -26,7 +27,9 @@ export default function ModelPicker({ selectedIds = [], onChange, singleSelect =
   const [query, setQuery] = useState('');
   const [open, setOpen] = useState(false);
   const [providerFilter, setProviderFilter] = useState('all');
+  const [dropdownStyle, setDropdownStyle] = useState({});
   const inputRef = useRef(null);
+  const containerRef = useRef(null);
   const dropdownRef = useRef(null);
 
   const loadModels = useCallback(async () => {
@@ -46,10 +49,37 @@ export default function ModelPicker({ selectedIds = [], onChange, singleSelect =
     loadModels();
   }, [loadModels]);
 
+  // Recalculate dropdown position when open, and keep it updated on scroll/resize
+  useEffect(() => {
+    if (!open || !containerRef.current) return;
+
+    const updatePosition = () => {
+      if (!containerRef.current) return;
+      const rect = containerRef.current.getBoundingClientRect();
+      setDropdownStyle({
+        position: 'fixed',
+        top: rect.bottom + 6,
+        left: rect.left,
+        width: rect.width,
+      });
+    };
+
+    updatePosition();
+    window.addEventListener('resize', updatePosition);
+    window.addEventListener('scroll', updatePosition, true);
+    return () => {
+      window.removeEventListener('resize', updatePosition);
+      window.removeEventListener('scroll', updatePosition, true);
+    };
+  }, [open]);
+
   // Close on outside click
   useEffect(() => {
     const handler = (e) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+      if (
+        containerRef.current && !containerRef.current.contains(e.target) &&
+        dropdownRef.current && !dropdownRef.current.contains(e.target)
+      ) {
         setOpen(false);
       }
     };
@@ -79,8 +109,47 @@ export default function ModelPicker({ selectedIds = [], onChange, singleSelect =
     onChange(selectedIds.filter((s) => s !== id));
   };
 
+  const dropdown = open && !loading ? (
+    <div className="picker-dropdown" ref={dropdownRef} style={dropdownStyle}>
+      {error && <div className="picker-error">{error}</div>}
+      {!error && filtered.length === 0 && (
+        <div className="picker-empty">
+          {query ? `No models match "${query}"` : 'No models available'}
+        </div>
+      )}
+      {!error && filtered.slice(0, 80).map((model) => (
+        <button
+          key={model.id}
+          className="picker-option"
+          onClick={() => handleSelect(model)}
+          type="button"
+        >
+          <div className="option-main">
+            <span className="option-provider">{model.id.split('/')[0]}</span>
+            <span className="option-name">{model.name.replace(/^[^:]+:\s*/, '')}</span>
+            {isMultimodal(model.modality) && (
+              <span className="option-tag tag-vision">vision</span>
+            )}
+          </div>
+          <div className="option-meta">
+            <span className="option-id">{model.id}</span>
+            <div className="option-stats">
+              {model.context_length && <span className="option-stat">{formatCtx(model.context_length)}</span>}
+              <span className={`option-price ${model.price_per_million === 0 ? 'price-free' : ''}`}>
+                {formatPrice(model.price_per_million)}
+              </span>
+            </div>
+          </div>
+        </button>
+      ))}
+      {filtered.length > 80 && (
+        <div className="picker-overflow">Showing 80 of {filtered.length} — refine your search</div>
+      )}
+    </div>
+  ) : null;
+
   return (
-    <div className="model-picker" ref={dropdownRef}>
+    <div className="model-picker" ref={containerRef}>
       {/* Selected chips (multi-select mode) */}
       {!singleSelect && selectedIds.length > 0 && (
         <div className="picker-chips">
@@ -126,7 +195,7 @@ export default function ModelPicker({ selectedIds = [], onChange, singleSelect =
         <select
           className="provider-filter"
           value={providerFilter}
-          onChange={(e) => setProviderFilter(e.target.value)}
+          onChange={(e) => { setProviderFilter(e.target.value); setOpen(true); }}
         >
           {providers.map((p) => (
             <option key={p} value={p}>{p === 'all' ? 'All providers' : p}</option>
@@ -134,45 +203,8 @@ export default function ModelPicker({ selectedIds = [], onChange, singleSelect =
         </select>
       </div>
 
-      {/* Dropdown */}
-      {open && !loading && (
-        <div className="picker-dropdown">
-          {error && <div className="picker-error">{error}</div>}
-          {!error && filtered.length === 0 && (
-            <div className="picker-empty">
-              {query ? `No models match "${query}"` : 'No models available'}
-            </div>
-          )}
-          {!error && filtered.slice(0, 80).map((model) => (
-            <button
-              key={model.id}
-              className="picker-option"
-              onClick={() => handleSelect(model)}
-              type="button"
-            >
-              <div className="option-main">
-                <span className="option-provider">{model.id.split('/')[0]}</span>
-                <span className="option-name">{model.name.replace(/^[^:]+:\s*/, '')}</span>
-                {isMultimodal(model.modality) && (
-                  <span className="option-tag tag-vision">vision</span>
-                )}
-              </div>
-              <div className="option-meta">
-                <span className="option-id">{model.id}</span>
-                <div className="option-stats">
-                  {model.context_length && <span className="option-stat">{formatCtx(model.context_length)}</span>}
-                  <span className={`option-price ${model.price_per_million === 0 ? 'price-free' : ''}`}>
-                    {formatPrice(model.price_per_million)}
-                  </span>
-                </div>
-              </div>
-            </button>
-          ))}
-          {filtered.length > 80 && (
-            <div className="picker-overflow">Showing 80 of {filtered.length} — refine your search</div>
-          )}
-        </div>
-      )}
+      {/* Dropdown rendered via portal to escape overflow clipping */}
+      {createPortal(dropdown, document.body)}
     </div>
   );
 }

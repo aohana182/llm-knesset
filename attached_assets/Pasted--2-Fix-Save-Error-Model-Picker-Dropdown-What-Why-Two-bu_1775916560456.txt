@@ -1,0 +1,30 @@
+#2 - Fix Save Error & Model Picker Dropdown
+What & Why
+Two bugs need fixing:
+
+"Failed to save settings" error — The production backend throws a 500 error (psycopg2.OperationalError: SSL connection has been closed unexpectedly) when saving prefs. The database connection pool returns stale/closed connections without health-checking them, and the app crashes instead of recovering.
+
+Model picker dropdown clipping and missing auto-open — The picker dropdown is position: absolute but the modal's .admin-body has overflow-y: auto, which clips the dropdown and prevents scrolling. Also, changing the provider filter doesn't automatically open the dropdown — users have to click the search box separately.
+
+Done looks like
+"Save Changes" in the My Models modal succeeds without error
+After saving, the selected models persist correctly
+The model list dropdown is fully scrollable when "google" (or any provider with many models) is selected
+Changing the provider filter immediately shows the model list without requiring a click on the search input
+Out of scope
+Redesigning the modal or model picker UI
+Changing the 80-item display cap
+Migrating to a different database driver or ORM
+Tasks
+Fix stale DB connection handling — In db.py, add retry logic in db_cursor.__enter__ so that when a stale/closed connection is retrieved from the pool, it is discarded (via pool.putconn with close=True) and replaced with a fresh one. Also add keepalive connection parameters to ThreadedConnectionPool to reduce idle SSL timeouts.
+
+Fix dropdown clipping — Change .picker-dropdown in ModelPicker to use position: fixed with JavaScript-calculated coordinates via getBoundingClientRect on the search row, so the dropdown escapes the overflow-y: auto scroll container in .admin-body.
+
+Auto-open on provider change — Add setOpen(true) to the provider filter's onChange handler so the dropdown opens immediately when a provider is selected.
+
+Relevant files
+backend/db.py
+backend/user_store.py
+frontend/src/components/ModelPicker.jsx
+frontend/src/components/ModelPicker.css
+frontend/src/components/AdminPanel.css
